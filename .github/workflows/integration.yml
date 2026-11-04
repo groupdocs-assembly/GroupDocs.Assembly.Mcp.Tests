@@ -1,0 +1,199 @@
+name: integration
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  schedule:
+    # Nightly — catches regressions introduced by nuget.org / dnx / runtime changes.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      package_version:
+        description: "GroupDocs.Assembly.Mcp version on nuget.org to test"
+        required: false
+        default: "26.10.0"
+      image:
+        description: "Container image for the docker job. Blank = the image tagged with package_version, so both jobs test the same release"
+        required: false
+        default: ""
+  # Triggered from the main repo's publish workflow right after a NuGet push.
+  # Payload: { "package_version": "x.y.z", "image": "ghcr.io/...:x.y.z" (optional) }
+  repository_dispatch:
+    types: [nuget-published]
+
+# Read-only: the suite needs no write access to the repository.
+permissions:
+  contents: read
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # The published NuGet package, launched by dnx, on all three OSes.
+  # Linux and Windows gate; macOS runners have hung across the whole MCP family
+  # since October 2026, so that leg does not block.
+  # ───────────────────────────────────────────────────────────────────────────
+  test:
+    name: ${{ matrix.os }} · dnx
+    runs-on: ${{ matrix.os }}
+    # A hung run must fail fast: macOS jobs were hanging in 'Integration tests'
+    # and getting killed at ~45 min with NO logs uploaded (BlobNotFound).
+    timeout-minutes: 20
+    continue-on-error: ${{ matrix.os == 'macos-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    env:
+      MCP_PACKAGE_VERSION: >-
+        ${{ github.event.inputs.package_version
+            || github.event.client_payload.package_version
+            || '26.10.0' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # GroupDocs.Assembly's presentation engine (PPTX templates, slides saved to PDF) draws through
+      # System.Drawing.Common 6.0.0; the server sets System.Drawing.EnableUnixSupport, and Linux needs:
+      # - libgdiplus                : the GDI+ implementation it P/Invokes ("The type initializer for
+      #                               'Gdip' threw an exception" without it)
+      # - libfontconfig1, fontconfig: font discovery and fc-cache
+      # - ttf-mscorefonts-installer : Arial / Times New Roman for PDF/XPS output.
+      #   EULA accepted via debconf-set-selections; fc-cache refreshes the index.
+      # The Docker image installs the same set; bare ubuntu-24.04 runners ship none of it.
+      # macOS installs nothing: the leg is non-blocking, and the presentation tests fail there
+      # without mono-libgdiplus (see the family's macOS notes before adding it).
+      - name: Install Linux native deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt-get install -y --no-install-recommends libgdiplus libfontconfig1 fontconfig ttf-mscorefonts-installer
+          sudo fc-cache -f > /dev/null
+
+      - name: Show environment
+        shell: bash
+        run: |
+          dotnet --info
+          echo "Testing GroupDocs.Assembly.Mcp@${MCP_PACKAGE_VERSION}"
+          dnx --help || true
+
+      - name: Write GroupDocs license (optional)
+        # If the repo defines a GROUPDOCS_LICENSE secret (base64 of a .lic file), write it to
+        # disk and point GROUPDOCS_LICENSE_PATH at it. The suite is designed to pass WITHOUT a
+        # licence; this only removes evaluation markers from outputs.
+        env:
+          GROUPDOCS_LICENSE: ${{ secrets.GROUPDOCS_LICENSE }}
+        if: env.GROUPDOCS_LICENSE != ''
+        shell: bash
+        run: |
+          echo "$GROUPDOCS_LICENSE" | base64 -d > "$RUNNER_TEMP/GroupDocs.lic"
+          echo "GROUPDOCS_LICENSE_PATH=$RUNNER_TEMP/GroupDocs.lic" >> "$GITHUB_ENV"
+
+      # Pre-warm the dnx package cache AND surface the server's launch stderr.
+      # With a COLD dnx cache the fixture's in-pipe launch of a large package can fail
+      # ConnectAsync in ~2s ('server shut down unexpectedly') before the download
+      # completes - proven on GroupDocs.Signature.Mcp (3 consecutive red runs cold, 42/42
+      # green after warm-up). This step downloads/launches the server once
+      # (stdin=/dev/null -> reads EOF -> clean exit 0; 124 = killed by timeout = also
+      # healthy) and prints stderr, which the fixture error hides.
+      - name: Pre-warm dnx package cache (+ launch diagnostics)
+        shell: bash
+        run: |
+          set +e
+          DNX=dnx
+          [ "$RUNNER_OS" = "Windows" ] && DNX=dnx.cmd
+          timeout 180 "$DNX" GroupDocs.Assembly.Mcp@${MCP_PACKAGE_VERSION} --yes < /dev/null > dnx_probe_out.log 2> dnx_probe_err.log
+          code=$?
+          echo "probe exit=$code (0 or 124 = healthy; 127 = dnx not found; else see stderr)"
+          echo "--- stderr ---"; cat dnx_probe_err.log
+          echo "--- stdout (head) ---"; head -5 dnx_probe_out.log
+          exit 0
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      # Category=Metered is excluded on purpose: those tests bill a real metered
+      # account per operation, so they run only from the dedicated `metered` workflow.
+      - name: Integration tests
+        run: >-
+          dotnet test --configuration Release --no-build
+          --filter "Category!=Metered"
+          --logger "trx;LogFileName=integration.trx"
+          --logger "console;verbosity=detailed"
+          --blame-hang --blame-hang-timeout 5m --blame-hang-dump-type full
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trx-${{ matrix.os }}
+          path: |
+            **/TestResults/*.trx
+            **/TestResults/**/*.dmp
+            **/TestResults/**/Sequence_*.xml
+          if-no-files-found: ignore
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # The Docker image, through the fixture's MCP_SERVER_IMAGE channel. The external
+  # audit found packaging defects that only the Linux image had, which a dnx-only
+  # matrix can never see — so the image is tested from the first release.
+  # Linux only: GitHub's Windows and macOS runners cannot run Linux containers.
+  # The fixture passes --user on Linux so the container can write into the mount.
+  # ───────────────────────────────────────────────────────────────────────────
+  docker:
+    name: ubuntu-latest · docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      MCP_SERVER_IMAGE: >-
+        ${{ github.event.inputs.image
+            || github.event.client_payload.image
+            || format('ghcr.io/groupdocs-assembly/assembly-net-mcp:{0}',
+                      github.event.inputs.package_version
+                      || github.event.client_payload.package_version
+                      || '26.10.0') }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # Pull before the tests so a slow first pull cannot be mistaken for a hung server,
+      # and so the image digest under test is in the log.
+      - name: Pull image under test
+        run: |
+          docker pull "$MCP_SERVER_IMAGE"
+          docker image inspect "$MCP_SERVER_IMAGE" --format 'testing {{index .Config.Labels "org.opencontainers.image.version"}} ({{.Id}})'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Integration tests (docker channel)
+        run: >-
+          dotnet test --configuration Release --no-build
+          --filter "Category!=Metered"
+          --logger "trx;LogFileName=integration-docker.trx"
+          --logger "console;verbosity=detailed"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trx-docker
+          path: "**/TestResults/*.trx"
+          if-no-files-found: ignore
