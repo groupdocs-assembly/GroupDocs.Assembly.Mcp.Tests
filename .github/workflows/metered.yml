@@ -1,0 +1,120 @@
+name: metered
+
+# Verifies that metered (pay-per-use) licensing actually engages on the published artifact.
+#
+# COST WARNING - every run of this workflow spends real credit. Unlike a licence file, a
+# metered key bills per billable operation, so this is deliberately NOT on the push or
+# pull_request path, and NOT nightly. Use a dedicated CI metered account with a capped
+# balance, never the production key: then a leak or a misbehaving loop is a red build
+# rather than a surprise invoice.
+#
+# Secrets required (repository or organization level, scoped to this repo):
+#   GROUPDOCS_METERED_PUBLIC_KEY
+#   GROUPDOCS_METERED_PRIVATE_KEY
+# Secrets are never exposed to pull_request runs from forks, which is why the triggers
+# below are dispatch/schedule only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_version:
+        description: "GroupDocs.Assembly.Mcp version on nuget.org to test (blank = 26.10.0, the version this repo pins)"
+        required: false
+        type: string
+  schedule:
+    # Weekly. Every additional run costs money and tells us nothing new unless something
+    # shipped in between.
+    - cron: "0 5 * * 1"
+
+# Never let two metered runs bill concurrently.
+concurrency:
+  group: metered-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  metered:
+    name: metered licensing
+    runs-on: ubuntu-latest
+    # One OS on purpose. This verifies licensing, not portability - the 3-OS matrix in
+    # integration.yml covers that, for free.
+    timeout-minutes: 15
+
+    env:
+      MCP_PACKAGE_VERSION: ${{ inputs.package_version || '26.10.0' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # Gate here rather than inside the tests. A test that skips itself when the key is
+      # missing gets counted as a pass, and the external audit found exactly that pattern
+      # hiding untested licensing across the family. With the check at job level the skip is
+      # visible in the run log, and the tests themselves hard-fail if the keys are absent.
+      - name: Verify metered secrets are configured
+        env:
+          PUBLIC_KEY: ${{ secrets.GROUPDOCS_METERED_PUBLIC_KEY }}
+          PRIVATE_KEY: ${{ secrets.GROUPDOCS_METERED_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          # No `set -x` anywhere in a step that can see the keys.
+          set -eu
+          missing=()
+          [ -z "${PUBLIC_KEY:-}" ]  && missing+=("GROUPDOCS_METERED_PUBLIC_KEY")
+          [ -z "${PRIVATE_KEY:-}" ] && missing+=("GROUPDOCS_METERED_PRIVATE_KEY")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing metered secrets: ${missing[*]}. Add them under Settings ->" \
+                 "Secrets and variables -> Actions. Use a dedicated CI metered account with a" \
+                 "capped balance, not the production key."
+            exit 1
+          fi
+          echo "Metered secrets present."
+
+      # libgdiplus for presentation templates, fonts for PDF/XPS output (same set as integration.yml).
+      - name: Install Linux native deps
+        run: |
+          sudo apt-get update
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt-get install -y --no-install-recommends libgdiplus libfontconfig1 fontconfig ttf-mscorefonts-installer
+          sudo fc-cache -f > /dev/null
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      # Pre-warm so a cold dnx cache cannot fail the launch and burn the run without
+      # actually testing anything (see integration.yml for the evidence behind this).
+      - name: Pre-warm dnx package cache
+        shell: bash
+        run: |
+          set +e
+          timeout 180 dnx "GroupDocs.Assembly.Mcp@${MCP_PACKAGE_VERSION}" --yes < /dev/null
+          echo "pre-warm exit: $? (0 or 124 are both healthy)"
+
+      - name: Metered tests
+        env:
+          GROUPDOCS_METERED_PUBLIC_KEY: ${{ secrets.GROUPDOCS_METERED_PUBLIC_KEY }}
+          GROUPDOCS_METERED_PRIVATE_KEY: ${{ secrets.GROUPDOCS_METERED_PRIVATE_KEY }}
+        run: >-
+          dotnet test --configuration Release --no-build
+          --filter "Category=Metered"
+          --logger "trx;LogFileName=metered.trx"
+          --logger "console;verbosity=detailed"
+
+      # Deliberately NOT uploading raw server stderr from this job. GitHub masks registered
+      # secrets in logs, but that is a backstop against disclosure rather than a reason to
+      # publish unscrubbed output from a run holding a live key.
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metered-results
+          path: "**/TestResults/metered.trx"
+          if-no-files-found: warn

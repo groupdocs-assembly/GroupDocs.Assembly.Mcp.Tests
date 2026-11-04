@@ -1,0 +1,14 @@
+services:
+  groupdocs-assembly-mcp:
+    image: ghcr.io/groupdocs-assembly/assembly-net-mcp:latest
+    stdin_open: true
+    tty: false
+    # Linux hosts: the image runs as uid 1654 and a bind mount keeps its host owner, so the
+    # documents the server generates into /data fail with "Permission denied" unless the
+    # container runs as you. Set UID/GID in your shell or .env (e.g. UID=1000 GID=1000).
+    # Docker Desktop on Windows and macOS does not need this line.
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      GROUPDOCS_MCP_STORAGE_PATH: /data
+    volumes:
+      - ./documents:/data
