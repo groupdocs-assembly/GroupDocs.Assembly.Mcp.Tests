@@ -1,0 +1,64 @@
+# GroupDocs.Assembly.Mcp.Tests
+
+Integration tests and deployment how-to guides for GroupDocs.Assembly.Mcp — the MCP server that lets AI agents (Claude, Cursor, VS Code / GitHub Copilot, and other MCP clients) generate Word, Excel, PowerPoint, PDF and e-mail documents from templates and data, locally, with GroupDocs.Assembly for .NET.
+
+This repo validates the published artifact end-to-end (NuGet via dnx, or the Docker image) and doubles as a reference for using it from every supported channel.
+
+## Primary repository
+
+- MCP server source + package: https://github.com/groupdocs-assembly/GroupDocs.Assembly.Mcp
+- NuGet package: https://www.nuget.org/packages/GroupDocs.Assembly.Mcp
+- Docker images: ghcr.io/groupdocs-assembly/assembly-net-mcp and docker.io/groupdocs/assembly-net-mcp
+
+## Deployment channels covered by how-to guides
+
+- how-to/01-install-from-nuget.md — dnx (recommended) + global dotnet tool
+- how-to/02-run-via-docker.md — container image + docker-compose, --user on Linux
+- how-to/03-verify-mcp-registry.md — MCP registry discovery and NuGet.org auto-generated mcp.json
+- how-to/04-use-with-claude-desktop.md — Claude Desktop stdio config
+- how-to/05-use-with-vscode-copilot.md — VS Code / GitHub Copilot config
+- how-to/06-run-integration-tests.md — run this repo's test suite locally and in CI
+- how-to/07-use-with-cursor.md — Cursor config
+
+## MCP tools exposed by the server
+
+- assemble_document — fill a template with data (inline JSON, or a JSON/XML/CSV file or a document table) and save the result in its own format, another format of its family, or PDF
+- assemble_per_record — one document per element of a JSON array (mail merge); failed records are listed
+- get_template_fields — a template's tags, data names, fields and a JSON skeleton of the data to fill in
+- get_document_info — a file as a template (family, tags, save targets) and as data (keys, columns, tables)
+- get_supported_formats — template formats, save targets per family, data formats
+- get_license_status — licensing mode, metered consumption and engine version (from GroupDocs.Mcp.Core)
+
+## Example prompts for AI agents
+
+- Fill invoice-template.docx with this order and save it as a PDF: …
+- What data does contract-template.docx need? Give me a JSON skeleton.
+- Generate a welcome letter for every customer in customers.json, named after the customer.
+- Build the report from contracts-table.xlsx and Contracts.xlsx.
+- Which formats can GroupDocs.Assembly fill and save?
+
+## Environment variables
+
+- GROUPDOCS_MCP_STORAGE_PATH — base folder for templates, data and generated documents (defaults to the current working directory)
+- GROUPDOCS_MCP_OUTPUT_PATH — optional, routes generated documents to a separate folder
+- GROUPDOCS_LICENSE_PATH — path to a GroupDocs licence file; omit for evaluation mode
+- GROUPDOCS_METERED_PUBLIC_KEY / GROUPDOCS_METERED_PRIVATE_KEY — metered (pay-per-use) licensing; the private key is a secret
+
+## Test-suite switches
+
+- MCP_PACKAGE_VERSION — published version to test (default from Directory.Build.props)
+- MCP_SERVER_DLL — test a locally built server DLL instead of the package
+- MCP_SERVER_IMAGE — test a container image instead of the package
+
+## Key facts for AI agents
+
+- Tests the shipped artifact, not the source. No project reference to the server.
+- Wire names are snake_case (assemble_document, get_template_fields, …).
+- Failures set isError and start with the tool's prefix, e.g. "Document assembly failed for '<file>': …".
+- Generated documents are read back and checked for values from the data.
+- The suite passes without a licence. Metered tests are a separate, deliberately triggered workflow.
+- Requires the .NET 10 SDK (dnx). Linux needs libgdiplus for presentation templates and fonts for PDF/XPS output.
+
+## License
+
+MIT — see LICENSE
