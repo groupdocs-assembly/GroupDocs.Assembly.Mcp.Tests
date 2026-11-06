@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "groupdocs-assembly": {
+      "type": "stdio",
+      "command": "dnx",
+      "args": ["GroupDocs.Assembly.Mcp@26.10.0", "--yes"],
+      "env": {
+        "GROUPDOCS_MCP_STORAGE_PATH": "/absolute/path/to/documents"
+      }
+    }
+  }
+}
