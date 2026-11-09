@@ -12,7 +12,7 @@ namespace GroupDocs.Assembly.Mcp.IntegrationTests.Fixtures;
 ///
 /// Three launch channels, picked by environment variable - the first one set wins:
 ///
-///   MCP_SERVER_IMAGE  docker run of that image (e.g. ghcr.io/groupdocs-assembly/assembly-net-mcp:26.10.0).
+///   MCP_SERVER_IMAGE  docker run of that image (e.g. ghcr.io/groupdocs-assembly/assembly-net-mcp:26.11.0).
 ///                     The storage folder is bind-mounted at /data, so host-side assertions see
 ///                     exactly what the container wrote.
 ///   MCP_SERVER_DLL    dotnet &lt;dll&gt;, for testing a local build before it is published.

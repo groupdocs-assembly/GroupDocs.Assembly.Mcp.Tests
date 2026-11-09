@@ -33,7 +33,7 @@ copy-pasteable snippet generated from the package's embedded
 `.mcp/server.json`. The snippet should contain:
 
 - `command: "dnx"`
-- `args: ["GroupDocs.Assembly.Mcp@26.10.0", "--yes"]`
+- `args: ["GroupDocs.Assembly.Mcp@26.11.0", "--yes"]`
 - `env` block with `GROUPDOCS_MCP_STORAGE_PATH`, `GROUPDOCS_MCP_OUTPUT_PATH`,
   `GROUPDOCS_LICENSE_PATH`.
 
@@ -42,7 +42,7 @@ the source of truth. You can inspect it directly by downloading the `.nupkg`:
 
 ```bash
 curl -L -o pkg.nupkg \
-  https://www.nuget.org/api/v2/package/GroupDocs.Assembly.Mcp/26.10.0
+  https://www.nuget.org/api/v2/package/GroupDocs.Assembly.Mcp/26.11.0
 unzip -p pkg.nupkg .mcp/server.json | jq
 ```
 
@@ -52,7 +52,7 @@ Expected top-level fields:
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.groupdocs-assembly/groupdocs-assembly-mcp",
-  "version": "26.10.0",
+  "version": "26.11.0",
   "packages": [ { "registryType": "nuget", "identifier": "GroupDocs.Assembly.Mcp", ... } ],
   "repository": { "url": "https://github.com/groupdocs-assembly/GroupDocs.Assembly.Mcp" }
 }
@@ -80,7 +80,7 @@ package with the `McpServer` type.
 Claude Desktop doesn't (yet) have built-in registry search, but you can confirm
 discoverability indirectly:
 
-- `dnx` successfully resolves `GroupDocs.Assembly.Mcp@26.10.0` from nuget.org.
+- `dnx` successfully resolves `GroupDocs.Assembly.Mcp@26.11.0` from nuget.org.
 - The snippet on the NuGet package page pastes directly into
   `claude_desktop_config.json` without edits (other than `storage_path`).
 

@@ -11,7 +11,7 @@
     "groupdocs-assembly": {
       "type": "stdio",
       "command": "dnx",
-      "args": ["GroupDocs.Assembly.Mcp@26.10.0", "--yes"],
+      "args": ["GroupDocs.Assembly.Mcp@26.11.0", "--yes"],
       "env": {
         "GROUPDOCS_MCP_STORAGE_PATH": "${input:storage_path}"
       }

@@ -29,7 +29,7 @@ Create the file if it doesn't exist.
     "groupdocs-assembly": {
       "type": "stdio",
       "command": "dnx",
-      "args": ["GroupDocs.Assembly.Mcp@26.10.0", "--yes"],
+      "args": ["GroupDocs.Assembly.Mcp@26.11.0", "--yes"],
       "env": {
         "GROUPDOCS_MCP_STORAGE_PATH": "/Users/you/Documents"
       }
@@ -79,7 +79,7 @@ where dnx.cmd        # Windows (from cmd)
       "args": [
         "run", "--rm", "-i",
         "-v", "/Users/you/Documents:/data",
-        "ghcr.io/groupdocs-assembly/assembly-net-mcp:26.10.0"
+        "ghcr.io/groupdocs-assembly/assembly-net-mcp:26.11.0"
       ]
     }
   }

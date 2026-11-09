@@ -31,7 +31,7 @@ Create the file if it doesn't exist.
   "mcpServers": {
     "groupdocs-assembly": {
       "command": "dnx",
-      "args": ["GroupDocs.Assembly.Mcp@26.10.0", "--yes"],
+      "args": ["GroupDocs.Assembly.Mcp@26.11.0", "--yes"],
       "env": {
         "GROUPDOCS_MCP_STORAGE_PATH": "/Users/you/Documents"
       }
@@ -43,7 +43,7 @@ Create the file if it doesn't exist.
 - Replace the storage path with an **absolute path** to the folder that holds your
   templates and data; generated documents are written there too. On Windows use `"C:\\Users\\you\\Documents"` (double-escaped) or
   forward slashes.
-- Omit `@26.10.0` to always pull the latest stable.
+- Omit `@26.11.0` to always pull the latest stable.
 - Add `"GROUPDOCS_LICENSE_PATH": "…/GroupDocs.Total.lic"` to `env` to remove
   evaluation marks from generated documents. Every tool still works in evaluation mode.
 
@@ -61,7 +61,7 @@ directly with `dotnet.exe`:
     "groupdocs-assembly": {
       "command": "C:\\Program Files\\dotnet\\dotnet.exe",
       "args": [
-        "C:\\Users\\you\\.nuget\\packages\\groupdocs.assembly.mcp\\26.10.0\\tools\\net10.0\\any\\GroupDocs.Assembly.Mcp.dll"
+        "C:\\Users\\you\\.nuget\\packages\\groupdocs.assembly.mcp\\26.11.0\\tools\\net10.0\\any\\GroupDocs.Assembly.Mcp.dll"
       ],
       "env": {
         "GROUPDOCS_MCP_STORAGE_PATH": "C:\\Users\\you\\Documents"
@@ -71,7 +71,7 @@ directly with `dotnet.exe`:
 }
 ```
 
-Populate the cache first by running `dnx GroupDocs.Assembly.Mcp@26.10.0 --yes` once
+Populate the cache first by running `dnx GroupDocs.Assembly.Mcp@26.11.0 --yes` once
 in a terminal, then point `args[0]` at the resulting
 `…\.nuget\packages\groupdocs.assembly.mcp\<version>\tools\net10.0\any\GroupDocs.Assembly.Mcp.dll`.
 
@@ -85,7 +85,7 @@ in a terminal, then point `args[0]` at the resulting
       "args": [
         "run", "--rm", "-i",
         "-v", "/Users/you/Documents:/data",
-        "ghcr.io/groupdocs-assembly/assembly-net-mcp:26.10.0"
+        "ghcr.io/groupdocs-assembly/assembly-net-mcp:26.11.0"
       ]
     }
   }

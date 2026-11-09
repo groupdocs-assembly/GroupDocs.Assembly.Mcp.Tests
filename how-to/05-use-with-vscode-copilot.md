@@ -30,7 +30,7 @@ Create the file at the root of your workspace:
     "groupdocs-assembly": {
       "type": "stdio",
       "command": "dnx",
-      "args": ["GroupDocs.Assembly.Mcp@26.10.0", "--yes"],
+      "args": ["GroupDocs.Assembly.Mcp@26.11.0", "--yes"],
       "env": {
         "GROUPDOCS_MCP_STORAGE_PATH": "${input:storage_path}"
       }
@@ -59,7 +59,7 @@ value.
       "args": [
         "run", "--rm", "-i",
         "-v", "${workspaceFolder}/documents:/data",
-        "ghcr.io/groupdocs-assembly/assembly-net-mcp:26.10.0"
+        "ghcr.io/groupdocs-assembly/assembly-net-mcp:26.11.0"
       ]
     }
   }

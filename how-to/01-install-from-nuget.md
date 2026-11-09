@@ -28,7 +28,7 @@ Windows and `~/.dotnet/dnx` on Linux/macOS.
 ## Option 1 — dnx (recommended)
 
 ```bash
-dnx GroupDocs.Assembly.Mcp@26.10.0 --yes
+dnx GroupDocs.Assembly.Mcp@26.11.0 --yes
 ```
 
 The first invocation downloads the package into the NuGet cache; subsequent
@@ -44,7 +44,7 @@ dnx GroupDocs.Assembly.Mcp --yes                # latest stable, refreshed every
 dnx GroupDocs.Assembly.Mcp --prerelease --yes   # latest including pre-releases
 ```
 
-| | Pinned (`@26.10.0`) | Unpinned |
+| | Pinned (`@26.11.0`) | Unpinned |
 |---|---|---|
 | Use for | Client configs committed to repos, CI, shared team setups | Quick local smoke tests, dev machines that should track latest |
 | Reproducibility | identical version on every machine / session | depends on when each machine first pulled |
@@ -85,7 +85,7 @@ Pipe an `initialize` + `tools/list` sequence to see the advertised tools:
   echo '{"jsonrpc":"2.0","method":"notifications/initialized"}'
   echo '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
   sleep 2
-) | GROUPDOCS_MCP_STORAGE_PATH=./docs dnx GroupDocs.Assembly.Mcp@26.10.0 --yes
+) | GROUPDOCS_MCP_STORAGE_PATH=./docs dnx GroupDocs.Assembly.Mcp@26.11.0 --yes
 ```
 
 You should see two JSON-RPC responses; the second lists the six advertised tools:
@@ -128,7 +128,7 @@ Set via environment variables when launching:
 ```bash
 GROUPDOCS_MCP_STORAGE_PATH=/data/documents \
 GROUPDOCS_LICENSE_PATH=/secrets/GroupDocs.Total.lic \
-dnx GroupDocs.Assembly.Mcp@26.10.0 --yes
+dnx GroupDocs.Assembly.Mcp@26.11.0 --yes
 ```
 
 ## Native prerequisites
@@ -170,7 +170,7 @@ The server's `initialize` response includes `serverInfo.version`. With an MCP
 client:
 
 ```text
-initialize response → serverInfo: { name: "GroupDocs.Assembly.Mcp", version: "26.10.0" }
+initialize response → serverInfo: { name: "GroupDocs.Assembly.Mcp", version: "26.11.0" }
 ```
 
 This value comes from the published assembly's `AssemblyInformationalVersion`

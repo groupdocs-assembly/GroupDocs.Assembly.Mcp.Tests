@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
     inputs:
       package_version:
-        description: "GroupDocs.Assembly.Mcp version on nuget.org to test (blank = 26.10.0, the version this repo pins)"
+        description: "GroupDocs.Assembly.Mcp version on nuget.org to test (blank = 26.11.0, the version this repo pins)"
         required: false
         type: string
   schedule:
@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 15
 
     env:
-      MCP_PACKAGE_VERSION: ${{ inputs.package_version || '26.10.0' }}
+      MCP_PACKAGE_VERSION: ${{ inputs.package_version || '26.11.0' }}
 
     steps:
       - uses: actions/checkout@v4

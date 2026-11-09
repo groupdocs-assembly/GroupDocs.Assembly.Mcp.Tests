@@ -30,7 +30,7 @@
 # Options:
 #   --version VERSION       Test specific package version (default: latest)
 #                           Use "latest" or omit the flag to track nuget.org's
-#                           most recent stable release. Pin (e.g. "26.10.0") for
+#                           most recent stable release. Pin (e.g. "26.11.0") for
 #                           reproducible / shared / CI runs.
 #   --filter PATTERN        Run only tests matching pattern (e.g., AssembleDocumentTests)
 #   --no-build              Skip local .NET build, use pre-built
@@ -39,7 +39,7 @@
 #
 # Examples:
 #   ./02_test-all-scenarios.sh                                  # latest stable
-#   ./02_test-all-scenarios.sh --version 26.10.0 --filter AssembleDocumentTests
+#   ./02_test-all-scenarios.sh --version 26.11.0 --filter AssembleDocumentTests
 #   ./02_test-all-scenarios.sh --license /path/to/GroupDocs.Total.lic
 #
 ################################################################################

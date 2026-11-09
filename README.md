@@ -55,16 +55,16 @@ dotnet test --filter "Category!=Metered"
 Test a specific published version:
 
 ```bash
-dotnet test -p:McpPackageVersion=26.10.0 --filter "Category!=Metered"
+dotnet test -p:McpPackageVersion=26.11.0 --filter "Category!=Metered"
 # or
-MCP_PACKAGE_VERSION=26.10.0 dotnet test --filter "Category!=Metered"
+MCP_PACKAGE_VERSION=26.11.0 dotnet test --filter "Category!=Metered"
 ```
 
 Test a local build of the server before it is published, or a container image:
 
 ```bash
 MCP_SERVER_DLL=/path/to/GroupDocs.Assembly.Mcp.dll dotnet test --filter "Category!=Metered"
-MCP_SERVER_IMAGE=ghcr.io/groupdocs-assembly/assembly-net-mcp:26.10.0 dotnet test --filter "Category!=Metered"
+MCP_SERVER_IMAGE=ghcr.io/groupdocs-assembly/assembly-net-mcp:26.11.0 dotnet test --filter "Category!=Metered"
 ```
 
 The suite runs **without a licence** by design. Set `GROUPDOCS_LICENSE_PATH` to remove evaluation

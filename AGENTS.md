@@ -55,7 +55,7 @@ Directory.Build.props       ← McpPackageVersion (single source of "what versio
 dotnet build -c Release
 dotnet test -c Release --filter "Category!=Metered"                       # published package
 MCP_SERVER_DLL=/path/to/GroupDocs.Assembly.Mcp.dll dotnet test -c Release --filter "Category!=Metered"
-MCP_SERVER_IMAGE=ghcr.io/groupdocs-assembly/assembly-net-mcp:26.10.0 dotnet test -c Release --filter "Category!=Metered"
+MCP_SERVER_IMAGE=ghcr.io/groupdocs-assembly/assembly-net-mcp:26.11.0 dotnet test -c Release --filter "Category!=Metered"
 dotnet test -c Release --filter "FullyQualifiedName~ToolDiscovery"      # fastest: nothing is generated
 ```
 

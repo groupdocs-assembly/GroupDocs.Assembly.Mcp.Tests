@@ -65,7 +65,7 @@ brew install docker dotnet git
 ./02_test-all-scenarios.sh --filter AssembleDocumentTests
 
 # Pin to a specific package version (reproducible / CI runs)
-./02_test-all-scenarios.sh --version 26.10.0
+./02_test-all-scenarios.sh --version 26.11.0
 
 # Use license for licensed-mode tests
 ./02_test-all-scenarios.sh --license /path/to/GroupDocs.Total.lic
@@ -84,7 +84,7 @@ Usage:
 Options:
   --version VERSION       Test specific package version (default: latest)
                           Use "latest" or omit to track nuget.org's most recent
-                          stable release. Pin (e.g. "26.10.0") for reproducible
+                          stable release. Pin (e.g. "26.11.0") for reproducible
                           / shared / CI runs.
   --filter PATTERN        Run only tests matching pattern
   --no-build              Skip local .NET build, use pre-built
@@ -98,8 +98,8 @@ Examples:
   # Only AssembleDocument tests
   ./02_test-all-scenarios.sh --filter AssembleDocumentTests
 
-  # Pin to 26.10.0 with custom license
-  ./02_test-all-scenarios.sh --version 26.10.0 --license /path/to/lic
+  # Pin to 26.11.0 with custom license
+  ./02_test-all-scenarios.sh --version 26.11.0 --license /path/to/lic
 
   # Skip rebuild (use cached binaries)
   ./02_test-all-scenarios.sh --no-build --filter ToolDiscovery
@@ -133,7 +133,7 @@ Usage:
 Options:
   --version VERSION       Test specific package version (default: latest)
                           Use "latest" or omit to track nuget.org's most recent
-                          stable release. Pin (e.g. "26.10.0") for reproducible
+                          stable release. Pin (e.g. "26.11.0") for reproducible
                           / shared / CI runs.
   --filter PATTERN        Run only tests matching pattern
   --license PATH          Path to GroupDocs license file
@@ -145,7 +145,7 @@ Examples:
   ./03_test-docker-compose.sh
 
   # Pin to a specific version
-  ./03_test-docker-compose.sh --version 26.10.0
+  ./03_test-docker-compose.sh --version 26.11.0
 
   # Keep containers for inspection
   ./03_test-docker-compose.sh --keep
@@ -291,7 +291,7 @@ docker compose -f docker-compose.test.yml down -v
 ### Test Multiple Versions
 
 ```bash
-for version in 26.10.0 latest; do
+for version in 26.11.0 latest; do
   echo "Testing version $version..."
   ./02_test-all-scenarios.sh --version $version || exit 1
 done

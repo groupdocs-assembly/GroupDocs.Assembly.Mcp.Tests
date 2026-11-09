@@ -10,7 +10,7 @@
 
   <PropertyGroup Label="Package under test">
     <!-- Version of GroupDocs.Assembly.Mcp on nuget.org to exercise.
-         Override on the command line: dotnet test -p:McpPackageVersion=26.10.0 -->
-    <McpPackageVersion Condition="'$(McpPackageVersion)' == ''">26.10.0</McpPackageVersion>
+         Override on the command line: dotnet test -p:McpPackageVersion=26.11.0 -->
+    <McpPackageVersion Condition="'$(McpPackageVersion)' == ''">26.11.0</McpPackageVersion>
   </PropertyGroup>
 </Project>
